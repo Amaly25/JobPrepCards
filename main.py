@@ -5,13 +5,18 @@ from langchain.schema import SystemMessage
 from langchain import PromptTemplate
 from langchain.llms import OpenAI
 from langchain.chains import LLMChain
+from supabase import create_client
 
 
-# langchain.chains is going to allow us to run topic through our prompt template and then go and generate output
 
 
+
+@st.cache_resource
 def init():
     load_dotenv()
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_KEY")
+    supabase= create_client(url, key)
     # load the OpenAI API key from the enviroment variable
     if os.getenv("OPENAI_API_KEY") == "":
         print("OPENAI_API_KEY is not set")
