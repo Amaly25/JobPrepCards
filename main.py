@@ -23,13 +23,10 @@ def init():
 @st.cache_data
 def call_openai(input, _template_name):
     chain = LLMChain(llm=OpenAI(temperature=0.9), prompt=_template_name)
-    response = chain.run(prompt=input)
+    response = chain.run(input)
     return response
 
-def call_openai_multiple(input_dict, _template_name):
-    chain = LLMChain(llm=OpenAI(temperature=0.9), prompt=_template_name)
-    response = chain.run(input_dict)
-    return response
+
 
 
 def main():
@@ -52,10 +49,10 @@ def main():
 
     topic_template = PromptTemplate(
         input_variables=["prompt"],
-        template=(
+        template=
             "Generate a question about a specific topic, that could be asked in a job interview."
             " ChatGPT should not ask for personal experiences etc. The topic is: {prompt}"
-        ),
+       ,
     )
 
     if topic:
@@ -80,16 +77,16 @@ def main():
 
             compare_text_template = PromptTemplate(
                 input_variables=["prompt1", "prompt2"],
-                template=(
+                template=
                     "Compare the user's answer to your own summary. Judge the user's answer and respond with a "
                     "percentage that corresponds to your judgement. The user's answer was: {prompt1} and your "
                     " own answer was: {prompt2}",
-                )
+                
             )
 
             with st.spinner("Loding"):
                 script = call_openai(interview_question, script_template)
-                compare_text = call_openai_multiple({'user_answer':"prompt1",'ai_answer': "prompt2"}, compare_text_template )
+                compare_text = call_openai({'prompt1':"user_answer",'prompt2': "ai_answer"}, compare_text_template )
                 st.write(script)
                 st.write(compare_text)
 
