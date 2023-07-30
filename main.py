@@ -7,12 +7,11 @@ from langchain.llms import OpenAI
 from langchain.chains import LLMChain
 
 
-# langchain.chains is going to allow us to run topic through our prompt template and then go and generate output
+
 
 
 def init():
     load_dotenv()
-    # load the OpenAI API key from the enviroment variable
     if os.getenv("OPENAI_API_KEY") == "":
         print("OPENAI_API_KEY is not set")
         exit(1)
