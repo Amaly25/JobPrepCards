@@ -8,21 +8,19 @@ from langchain.chains import LLMChain
 from supabase import create_client
 
 
-
-
-
 @st.cache_resource
 def init():
     load_dotenv()
     url = os.environ.get("SUPABASE_URL")
     key = os.environ.get("SUPABASE_KEY")
-    supabase= create_client(url, key)
+    supabase = create_client(url, key)
     # load the OpenAI API key from the enviroment variable
     if os.getenv("OPENAI_API_KEY") == "":
         print("OPENAI_API_KEY is not set")
         exit(1)
     else:
         print("OPENAI_API_KEY is get")
+    return supabase    
 
 
 @st.cache_data
@@ -31,11 +29,26 @@ def call_openai(input, _template_name):
     response = chain.run(input)
     return response
 
+def get_data_base_data(supabase):
+    table = supabase.table("jobprep")
+    print('')
+    print('')
+    print('')
+    data = table.select("*").execute()
+    return data
 
-
+@st.cache_data
+def insert_data_into_database(_supabase, input: dict):
+    table= _supabase.table("jobprep")
+    insert_data= table.insert(input).execute()
+    return insert_data
 
 def main():
-    init()
+    supabase = init()
+    data = get_data_base_data(supabase)
+    print(data)
+
+
     header = st.container()
     header.title("Job Prep Cards 🤖")
     header.subheader(
@@ -94,6 +107,11 @@ def main():
                 compare_text = call_openai({'prompt1':"user_answer",'prompt2': "ai_answer"}, compare_text_template )
                 st.write(script)
                 st.write(compare_text)
+
+                input = {'topic':topic,'question':interview_question,'answer':user_answer,'aianswer':script}
+                database=insert_data_into_database(supabase, input=input)
+                print(database)
+        
 
 
 if __name__ == "__main__":
