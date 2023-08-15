@@ -94,6 +94,24 @@ def main():
             placeholder=answer_label,
         )
 
+        audio = audiorecorder("🎤 ", " ⏱️ Recording...")
+
+        if len(audio) > 0:
+            # to play audio in frontend:
+            st.audio(audio.tobytes())
+
+            #to save audio to a file:
+
+            wav_file = open("audio.mp3", "wb")
+            wav_file.write(audio.tobytes())
+            wav_file.close()
+
+            
+        audio_file = open("./audio.mp3", "rb")
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        transcript = openai.Audio.transcribe("whisper-1", audio_file)
+        print(transcript)
+
         if user_answer:
             ai_message_prompt = AIMessagePromptTemplate.from_template(interview_question)
             compare_text_template = ChatPromptTemplate.from_messages( 
