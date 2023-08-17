@@ -5,12 +5,14 @@ from langchain.chat_models import ChatOpenAI
 from langchain.prompts.chat import (
     ChatPromptTemplate,
     HumanMessagePromptTemplate,
-    AIMessagePromptTemplate
+    AIMessagePromptTemplate,
 )
 from langchain import PromptTemplate
 from langchain.llms import OpenAI
 from langchain.chains import LLMChain
-from supabase import create_client
+from supabase_py import create_client
+from audiorecorder import audiorecorder
+import openai
 
 
 @st.cache_resource
@@ -25,38 +27,46 @@ def init():
         exit(1)
     else:
         print("OPENAI_API_KEY is get")
-    return supabase    
+    return supabase
 
 
 @st.cache_data
 def call_openai(input, _template_name):
     model = ChatOpenAI(
-        model='gpt-3.5-turbo',
+        model="gpt-3.5-turbo",
         temperature=0,
     )
     chain = LLMChain(llm=model, prompt=_template_name)
     response = chain.run(input)
     return response
 
+
 def get_data_base_data(supabase):
     table = supabase.table("jobprep")
-    print('')
-    print('')
-    print('')
+    print("")
+    print("")
+    print("")
     data = table.select("*").execute()
     return data
 
+
 @st.cache_data
 def insert_data_into_database(_supabase, input: dict):
-    table= _supabase.table("jobprep")
-    insert_data= table.insert(input).execute()
+    table = _supabase.table("jobprep")
+    insert_data = table.insert(input).execute()
     return insert_data
 
-def main():
-    supabase = init()
-    data = get_data_base_data(supabase)
-    print(data)
 
+def main():
+    try:
+        os.remove("audio.mp3")
+        audio = None
+    except:
+        pass
+
+    supabase = init()
+    # data = get_data_base_data(supabase)
+    # print(data)
 
     header = st.container()
     header.title("Job Prep Cards 🤖")
@@ -86,65 +96,117 @@ def main():
             header.write(interview_question)
 
     if interview_question:
-        answer_label = "write your answer "
-        user_answer = header.text_input(
-            label=answer_label,
-            key="user_answer",
-            label_visibility="hidden",
-            placeholder=answer_label,
-        )
+        answer = st.radio("**Enter your answer**:", ("✍️text", "🎙️Record"), index=1)
 
-        audio = audiorecorder("🎤 ", " ⏱️ Recording...")
-
-        if len(audio) > 0:
-            # to play audio in frontend:
-            st.audio(audio.tobytes())
-
-            #to save audio to a file:
-
-            wav_file = open("audio.mp3", "wb")
-            wav_file.write(audio.tobytes())
-            wav_file.close()
-
-            
-        audio_file = open("./audio.mp3", "rb")
-        openai.api_key = os.getenv("OPENAI_API_KEY")
-        transcript = openai.Audio.transcribe("whisper-1", audio_file)
-        print(transcript)
-
-        if user_answer:
-            ai_message_prompt = AIMessagePromptTemplate.from_template(interview_question)
-            compare_text_template = ChatPromptTemplate.from_messages( 
-                [
-                    human_message_prompt,
-                    ai_message_prompt,
-                    HumanMessagePromptTemplate.from_template(
-                        "Compare the the following answer to your own summary. Judge this answer and respond with a percentage that corresponds to your judgement. Here is the answer: {prompt1}"
-                    ),
-
-            ]
-
+        if answer == "✍️text":
+            answer_label = "write your answer "
+            user_answer = header.text_input(
+                label=answer_label,
+                key="user_answer",
+                label_visibility="hidden",
+                placeholder=answer_label,
             )
 
-            
-            compare_text = call_openai({'prompt': topic, 'prompt1': user_answer},
-                                        compare_text_template)
-            header.write(compare_text)
+            if user_answer:
+                ai_message_prompt = AIMessagePromptTemplate.from_template(
+                    interview_question
+                )
+                compare_text_template = ChatPromptTemplate.from_messages(
+                    [
+                        human_message_prompt,
+                        ai_message_prompt,
+                        HumanMessagePromptTemplate.from_template(
+                            "Compare the the following answer to your own summary. Judge this answer and respond with a percentage that corresponds to your judgement. Here is the answer: {prompt1}"
+                        ),
+                    ]
+                )
+
+                compare_text = call_openai(
+                    {"prompt": topic, "prompt1": user_answer}, compare_text_template
+                )
+                header.write(compare_text)
+
+                def rerun():
+                    st.session_state.user_input = ""
+                    st.session_state.user_answer = ""
+
+                st.button(
+                    label="next topic",
+                    on_click=rerun,
+                )
+
+                input = {
+                    "topic": topic,
+                    "question": interview_question,
+                    "answer": user_answer,
+                    "aianswer": compare_text,
+                }
+                database = insert_data_into_database(supabase, input=input)
+                print(database)
+
+        if answer == "🎙️Record":
+            transcript = None
+            wav_file = None
+
+            st.write("Press the microphone button to record  the answwer")
+            audio = audiorecorder("🎤 ", " ⏱️ Recording...")
+
+            if len(audio) > 0:
+                # to play audio in frontend:
+                st.audio(audio.tobytes())
+
+                # to save audio to a file:
+
+                wav_file = open(
+                    "audio.mp3", "wb"
+                )  # "wb" mode opens the file in binary format for writing while the "rb" option opens the file in binary format for reading.
+                wav_file.write(audio.tobytes())
+                wav_file.close()
+
+            if wav_file:
+                audio_file = open("./audio.mp3", "rb")
+                openai.api_key = os.getenv("OPENAI_API_KEY")
+                transcript = openai.Audio.transcribe("whisper-1", audio_file)
+                print(transcript)
+                st.write(transcript["text"])
+                st.write(transcript.get("text", "try again"))
+
+            if transcript:
+                ai_message_prompt = AIMessagePromptTemplate.from_template(
+                    interview_question
+                )
+                compare_text_template = ChatPromptTemplate.from_messages(
+                    [
+                        human_message_prompt,
+                        ai_message_prompt,
+                        HumanMessagePromptTemplate.from_template(
+                            "Compare the the following answer to your own summary. Weite the right answer summary and than Judge this answer and respond with a percentage that corresponds to your judgement. Here is the answer: {prompt2}"
+                        ),
+                    ]
+                )
+
+                compare_text = call_openai(
+                    {"prompt": topic, "prompt2": transcript}, compare_text_template
+                )
+                header.write(compare_text)
+
+                input = {
+                    "topic": topic,
+                    "question": interview_question,
+                    "answer": transcript,
+                    "aianswer": compare_text,
+                }
+                database = insert_data_into_database(supabase, input=input)
+                # print(database)
 
             def rerun():
-                st.session_state.user_input = ''
-                st.session_state.user_answer = ''
+                st.session_state.user_input = ""
+                os.remove("audio.mp3")  # Delete the temporary audio file
 
             st.button(
-                label='next topic',
-                on_click = rerun,
+                label="next topic",
+                on_click=rerun,
             )
-           
-
-            input = {'topic':topic,'question':interview_question,'answer':user_answer,'aianswer': compare_text}
-            database=insert_data_into_database(supabase, input=input)
-            print(database)
-        
 
 
 if __name__ == "__main__":
