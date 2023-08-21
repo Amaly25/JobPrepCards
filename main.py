@@ -167,8 +167,8 @@ def main():
                 audio_file = open("./audio.mp3", "rb")
                 openai.api_key = os.getenv("OPENAI_API_KEY")
                 transcript = openai.Audio.transcribe("whisper-1", audio_file)
-                print(transcript)
-                st.write(transcript["text"])
+                # print(transcript)
+                # st.write(transcript["text"])
                 st.write(transcript.get("text", "try again"))
 
             if transcript:
@@ -216,5 +216,18 @@ if __name__ == "__main__":
         layout="centered",
         initial_sidebar_state="expanded",
     )
+    page_bg_img = """
+    <style>
+    [data-testid="stAppViewContainer"]
+    {
+    background-image: url("https://t4.ftcdn.net/jpg/02/79/86/57/360_F_279865795_okVLwJY5z7C8IaeqSMVMNMQaVwCw446j.jpg");
+    background-size: cover;
+    }
+    [data-testid="stHeader"]{
+    background-color: rgba(0, 0, 0, 0);
+    }
+    </style>
+"""
+    st.markdown(page_bg_img, unsafe_allow_html=True)
 
     main()
