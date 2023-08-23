@@ -34,7 +34,7 @@ def init():
 def call_openai(input, _template_name):
     model = ChatOpenAI(
         model="gpt-3.5-turbo",
-        temperature=0,
+        temperature=0.1,
     )
     chain = LLMChain(llm=model, prompt=_template_name)
     response = chain.run(input)
@@ -91,12 +91,11 @@ def main():
     topic_template = ChatPromptTemplate.from_messages([human_message_prompt])
 
     if topic:
-        with st.spinner("Generating a Question"):
-            interview_question = call_openai(topic, topic_template)
-            header.write(interview_question)
+        interview_question = call_openai(topic, topic_template)
+        header.write(interview_question)
 
     if interview_question:
-        answer = st.radio("**Enter your answer**:", ("✍️text", "🎙️Record"), index=1)
+        answer = st.radio("**Enter your answer**:", ("✍️text", "🎙️Record"), index=0)
 
         if answer == "✍️text":
             answer_label = "write your answer "
