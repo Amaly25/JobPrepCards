@@ -198,14 +198,14 @@ def main():
                 database = insert_data_into_database(supabase, input=input)
                 # print(database)
 
-            def rerun():
-                st.session_state.user_input = ""
-                os.remove("audio.mp3")  # Delete the temporary audio file
-
-            st.button(
-                label="next topic",
-                on_click=rerun,
-            )
+                def rerun():
+                    st.session_state.user_input = ""
+                    os.remove("audio.mp3")  # Delete the temporary audio file
+                if compare_text:
+                    st.button(
+                        label="next topic",
+                        on_click=rerun,
+                    )
 
 
 if __name__ == "__main__":
