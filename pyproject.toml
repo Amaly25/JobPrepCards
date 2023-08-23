@@ -15,9 +15,9 @@ streamlit-audiorecorder = "^0.0.2"
 supabase-py = "^0.0.2"
 python-dotenv = "^1.0.0"
 black = "^23.7.0"
-tiktoken = "^0.4.0"
-requests = "^2.31.0"
+requests = "^2.25.1"
 beautifulsoup4 ="^4.12.2"
+pipreqs = "^0.4.13"
 
 
 
