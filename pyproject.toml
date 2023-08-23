@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "jobprepcards"
+version = "0.1.0"
+description = "JobPrepCards - Your go-to open-source tool for mastering job interview concepts through interactive flashcards."
+authors = ["Amal <amal.y.alshamahai@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+streamlit = "^1.25.0"
+langchain = "^0.0.262"
+openai = "^0.27.8"
+streamlit-audiorecorder = "^0.0.2"
+supabase-py = "^0.0.2"
+python-dotenv = "^1.0.0"
+black = "^23.7.0"
+tiktoken = "^0.4.0"
+requests = "^2.31.0"
+beautifulsoup4 ="^4.12.2"
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
