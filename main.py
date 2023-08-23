@@ -91,7 +91,6 @@ def main():
     topic_template = ChatPromptTemplate.from_messages([human_message_prompt])
 
     if topic:
-        #with st.spinner("Generating a Question"):
         interview_question = call_openai(topic, topic_template)
         header.write(interview_question)
 
